@@ -1,5 +1,21 @@
+# Node
 node_modules/
-dist/
 .env
-.DS_Store
+.env.local
+dist/
+build/
+
+# Logs
 *.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Docker
+*.pid
