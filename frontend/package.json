@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "build": "echo 'Building...' && rm -rf dist && mkdir dist && echo '<h1>TaskFlow</h1>' > dist/index.html"
+  }
+}
