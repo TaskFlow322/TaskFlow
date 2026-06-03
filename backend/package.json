@@ -6,6 +6,6 @@
     "seed": "prisma db seed"
   },
   "prisma": {
-    "seed": "node prisma/seed.js"
+    "seed": "ts-node prisma/seed.js"
   }
 }
