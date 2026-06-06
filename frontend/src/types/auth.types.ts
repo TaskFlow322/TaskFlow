@@ -4,6 +4,10 @@ export interface User {
   name: string;
   avatar?: string;
 }
+export interface UpdateProfileRequest {
+  name: string;
+  avatar?: string;
+}
 
 export interface AuthResponse {
   user: User;
