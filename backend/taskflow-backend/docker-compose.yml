@@ -15,17 +15,18 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   backend:
-    build: .
+    build:
+      context: ./taskflow-backend
     container_name: taskflow-backend
     restart: unless-stopped
     depends_on:
       - postgres
     ports:
-      - '3000:3000'
+      - '3001:5000'
     env_file:
-      - .env
+      - ./taskflow-backend/.env
     volumes:
-      - .:/app
+      - ./taskflow-backend:/app
       - /app/node_modules
     command: npm run dev
 
