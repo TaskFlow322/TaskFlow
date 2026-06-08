@@ -1,79 +1,104 @@
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../api/axiosInstance';
-import { setCredentials } from '../store/authSlice';
-import { Button, Input, Card, Typography, message } from 'antd';
-
-const { Title } = Typography;
+import { registerUser } from '../store/authSlice';
+import { useTheme } from '../context/ThemeContext';
+import Alert from '../components/ui/Alert';
+import { RootState } from '../store';
 
 const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUsername] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
+  const { loading, error } = useSelector((state: RootState) => state.auth);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const validatePassword = (pass: string) => {
+    if (pass.length < 6) return 'Пароль должен быть не менее 6 символов';
+    if (!/[A-Za-z]/.test(pass)) return 'Пароль должен содержать хотя бы одну букву';
+    if (!/\d/.test(pass)) return 'Пароль должен содержать хотя бы одну цифру';
+    return null;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
-    try {
-      const response = await api.post('/auth/register', { email, password, name });
-      dispatch(setCredentials(response.data));
-      message.success('Регистрация прошла успешно!');
-      navigate('/dashboard');
-    } catch (err) {
-      message.error('Ошибка регистрации. Попробуйте другой email.');
-    } finally {
-      setLoading(false);
+    if (!username.trim()) {
+      // Обработка ошибки через Alert потребует доработки
+      return;
     }
+    if (!email.includes('@')) {
+      return;
+    }
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return;
+    }
+    if (password !== confirmPassword) {
+      return;
+    }
+
+    dispatch(registerUser({ email, password, username })).then((action) => {
+      if (registerUser.fulfilled.match(action)) {
+        navigate('/dashboard');
+      }
+    });
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '50px auto' }}>
-      <Card>
-        <Title level={2} style={{ textAlign: 'center' }}>Регистрация</Title>
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: 16 }}>
-            <Input
-              placeholder="Имя"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              size="large"
-            />
-          </div>
-          <div style={{ marginBottom: 16 }}>
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              size="large"
-            />
-          </div>
-          <div style={{ marginBottom: 16 }}>
-            <Input.Password
-              placeholder="Пароль"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              size="large"
-            />
-          </div>
-          <Button type="primary" htmlType="submit" loading={loading} block size="large">
-            Зарегистрироваться
-          </Button>
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-950">
+      <div className="absolute top-4 right-4">
+        <button onClick={toggleTheme} className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+          {theme === 'light' ? '🌙 Тёмная' : '☀️ Светлая'}
+        </button>
+      </div>
+      <div className="w-full max-w-md px-8">
+        <h1 className="text-2xl font-semibold text-center text-gray-900 dark:text-white mb-8">Регистрация</h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <Alert message={error} type="error" />}
+          <input
+            type="text"
+            placeholder="Имя пользователя"
+            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Пароль (буквы и цифры, мин. 6 символов)"
+            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Подтвердите пароль"
+            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+          <button type="submit" disabled={loading} className="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-2 rounded-md hover:bg-gray-800 dark:hover:bg-gray-100 disabled:opacity-50">
+            {loading ? 'Регистрация...' : 'Зарегистрироваться'}
+          </button>
         </form>
-        <div style={{ marginTop: 16, textAlign: 'center' }}>
-          <Button type="link" onClick={() => navigate('/login')}>
-            Уже есть аккаунт? Войти
-          </Button>
-        </div>
-      </Card>
+        <button onClick={() => navigate('/login')} className="w-full mt-4 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+          Уже есть аккаунт? Войти
+        </button>
+      </div>
     </div>
   );
 };
