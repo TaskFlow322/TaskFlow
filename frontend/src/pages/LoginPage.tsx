@@ -1,35 +1,26 @@
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { setCredentials } from '../store/authSlice';
-import { mockLogin } from '../mocks/auth.mock';
+import { loginUser } from '../store/authSlice';
 import { useTheme } from '../context/ThemeContext';
 import Alert from '../components/ui/Alert';
+import { RootState } from '../store';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { loading, error } = useSelector((state: RootState) => state.auth);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    setTimeout(() => {
-      if (email && password) {
-        const mockData = mockLogin(email, password);
-        dispatch(setCredentials(mockData));
+    dispatch(loginUser({ email, password })).then((action) => {
+      if (loginUser.fulfilled.match(action)) {
         navigate('/dashboard');
-      } else {
-        setError('Введите email и пароль');
       }
-      setLoading(false);
-    }, 500);
+    });
   };
 
   return (
