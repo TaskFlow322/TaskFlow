@@ -38,7 +38,7 @@ const Navbar = () => {
               <span className="text-sm">👤</span>
             </div>
           )}
-          <span className="text-sm text-gray-600 dark:text-gray-400">{user?.name}</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">{user?.username}</span>
         </Link>
 
         <button

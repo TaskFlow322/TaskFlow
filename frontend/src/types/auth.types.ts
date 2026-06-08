@@ -1,11 +1,7 @@
 export interface User {
   id: number;
   email: string;
-  name: string;
-  avatar?: string;
-}
-export interface UpdateProfileRequest {
-  name: string;
+  username: string;
   avatar?: string;
 }
 
@@ -22,5 +18,5 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  name: string;
+  username: string;
 }

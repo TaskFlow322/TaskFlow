@@ -7,7 +7,7 @@ import Alert from '../components/ui/Alert';
 const ProfilePage = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
-  const [name, setName] = useState(user?.name || '');
+  const [username, setUsername] = useState(user?.username || '');
   const [email, setEmail] = useState(user?.email || '');
   const [avatar, setAvatar] = useState<string>(user?.avatar || '');
   const [loading, setLoading] = useState(false);
@@ -32,8 +32,8 @@ const ProfilePage = () => {
     setLoading(true);
 
     setTimeout(() => {
-      if (!name.trim()) {
-        setError('Имя не может быть пустым');
+      if (!username.trim()) {
+        setError('Имя пользователя не может быть пустым');
         setLoading(false);
         return;
       }
@@ -44,7 +44,7 @@ const ProfilePage = () => {
       }
 
       dispatch(updateProfile({
-        name,
+        username,
         email,
         avatar: avatar || undefined
       }));
@@ -81,20 +81,20 @@ const ProfilePage = () => {
           </label>
         </div>
 
-        {/* Имя */}
+        {/* Имя пользователя (username) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Имя
+            Имя пользователя
           </label>
           <input
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
           />
         </div>
 
-        {/* Email (теперь можно редактировать) */}
+        {/* Email */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Email
