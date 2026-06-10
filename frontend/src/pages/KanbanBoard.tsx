@@ -1,27 +1,34 @@
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../store';
 import KanbanColumn from '../components/KanbanColumn';
 import Modal from '../components/ui/Modal';
 import CommentList from '../components/CommentList';
-import { Task, Column } from '../types/task.types';
-import { mockColumns } from '../mocks/tasks.mock';
+import { Task, TaskStatus, Column } from '../types/task.types';
+import { fetchTasks, updateTaskStatus, updateTask, deleteTask, moveTaskLocally } from '../store/tasksSlice';
+
+const COLUMNS: Column[] = [
+  { id: 'todo', title: '📋 To Do', tasks: [] },
+  { id: 'in_progress', title: '⚡ In Progress', tasks: [] },
+  { id: 'done', title: '✅ Done', tasks: [] },
+];
 
 const KanbanBoard = () => {
-  const { tasks } = useSelector((state: RootState) => state.tasks);
-  const [columns, setColumns] = useState<Column[]>(mockColumns);
+  const dispatch = useDispatch<AppDispatch>();
+  const { tasks, loading, error } = useSelector((state: RootState) => state.tasks);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
 
   useEffect(() => {
-    const updatedColumns = mockColumns.map(col => ({
-      ...col,
-      tasks: tasks.filter(t => t.status === col.id),
-    }));
-    setColumns(updatedColumns);
-  }, [tasks]);
+    dispatch(fetchTasks());
+  }, [dispatch]);
+
+  const columns = COLUMNS.map(col => ({
+    ...col,
+    tasks: tasks.filter(t => t.status === col.id),
+  }));
 
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
@@ -30,9 +37,14 @@ const KanbanBoard = () => {
     setIsModalOpen(true);
   };
 
+  const handleDrop = (taskId: number, newStatus: TaskStatus) => {
+    dispatch(moveTaskLocally({ taskId, newStatus }));
+    dispatch(updateTaskStatus({ taskId, newStatus }));
+  };
+
   const handleSave = () => {
     if (selectedTask) {
-      // TODO: updateTask
+      dispatch(updateTask({ ...selectedTask, title: editTitle, description: editDescription }));
       setIsModalOpen(false);
       setSelectedTask(null);
     }
@@ -40,11 +52,27 @@ const KanbanBoard = () => {
 
   const handleDelete = () => {
     if (selectedTask) {
-      // TODO: deleteTask
+      dispatch(deleteTask(selectedTask.id));
       setIsModalOpen(false);
       setSelectedTask(null);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-gray-500 dark:text-gray-400">Загрузка задач...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-50 dark:bg-gray-950 min-h-screen">
@@ -53,9 +81,11 @@ const KanbanBoard = () => {
         {columns.map((col) => (
           <KanbanColumn
             key={col.id}
+            id={col.id}
             title={col.title}
             tasks={col.tasks}
             onTaskClick={handleTaskClick}
+            onDrop={handleDrop}
           />
         ))}
       </div>
