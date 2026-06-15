@@ -3,20 +3,13 @@ import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { prisma } from '../config/prisma';
 import { env } from '../config/env';
+import redis from '../config/redis';
 import { AuthRequest } from '../middlewares/authMiddleware';
 
 // РЕГИСТРАЦИЯ
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, username, password, fullName } = req.body;
-
-    if (!email || !username || !password) {
-      res.status(400).json({
-        success: false,
-        error: { message: 'Заполни все поля: email, username, password' }
-      });
-      return;
-    }
 
     const existingUser = await prisma.user.findFirst({
       where: {
@@ -74,14 +67,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      res.status(400).json({
-        success: false,
-        error: { message: 'Заполни email и password' }
-      });
-      return;
-    }
-
     const user = await prisma.user.findUnique({
       where: { email }
     });
@@ -134,7 +119,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 // ПОЛУЧИТЬ СЕБЯ
 export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    if (!req.user?.id) {
+    const userId = req.user?.id;
+    if (!userId) {
       res.status(401).json({
         success: false,
         error: { message: 'Пользователь не авторизован' }
@@ -142,8 +128,22 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
       return;
     }
 
+    const cacheKey = `user:profile:${userId}`;
+    
+    // Check Redis Cache
+    if (redis) {
+      const cachedData = await redis.get(cacheKey);
+      if (cachedData) {
+        res.json({
+          success: true,
+          data: { user: JSON.parse(cachedData) }
+        });
+        return;
+      }
+    }
+
     const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
+      where: { id: userId },
       select: {
         id: true,
         email: true,
@@ -161,6 +161,11 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
         error: { message: 'Пользователь не найден' }
       });
       return;
+    }
+
+    // Save to Redis Cache (TTL 3600 seconds)
+    if (redis) {
+      await redis.set(cacheKey, JSON.stringify(user), 'EX', 3600);
     }
 
     res.json({

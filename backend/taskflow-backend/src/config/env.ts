@@ -20,4 +20,5 @@ export const env = {
   bcryptRounds: Number(process.env.BCRYPT_ROUNDS || 10),
   isProduction: process.env.NODE_ENV === 'production',
   isDevelopment: process.env.NODE_ENV === 'development',
+  redisUrl: process.env.REDIS_URL as string,
 };
