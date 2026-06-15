@@ -26,6 +26,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   tasks Task[]
+  comments Comment[]
 
   @@map("users")
 }
@@ -68,5 +69,21 @@ model Task {
   assigneeId String?  @map("assignee_id")
   assignee   User?    @relation(fields: [assigneeId], references: [id])
 
+  comments Comment[]
+
   @@map("tasks")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  taskId  String @map("task_id")
+  task    Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId  String @map("user_id")
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
 }
