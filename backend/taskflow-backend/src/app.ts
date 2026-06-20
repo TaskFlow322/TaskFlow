@@ -24,6 +24,10 @@ app.use(morgan(env.isProduction ? 'combined' : 'dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'TaskFlow API is running' });
+});
+
 app.use(API_PREFIX, apiRouter);
 
 app.use(notFound);
