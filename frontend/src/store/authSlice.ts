@@ -21,7 +21,7 @@ export const loginUser = createAsyncThunk(
   'auth/login',
   async ({ email, password }: { email: string; password: string }) => {
     const response = await api.post('/auth/login', { email, password });
-    return response.data;
+    return response.data.data;
   }
 );
 
@@ -30,7 +30,7 @@ export const registerUser = createAsyncThunk(
   'auth/register',
   async ({ email, password, username }: { email: string; password: string; username: string }) => {
     const response = await api.post('/auth/register', { email, password, username });
-    return response.data;
+    return response.data.data;
   }
 );
 
@@ -41,7 +41,7 @@ export const restoreSession = createAsyncThunk(
     const token = localStorage.getItem('token');
     if (!token) throw new Error('Нет токена');
     const response = await api.get('/auth/me');
-    return response.data;
+    return response.data.data;
   }
 );
 
