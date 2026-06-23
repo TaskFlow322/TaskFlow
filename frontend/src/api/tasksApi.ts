@@ -1,4 +1,11 @@
 import { Task, TaskStatus } from '../types/task.types';
+import { api } from './axiosInstance';
+
+const STATUS_MAP: Record<TaskStatus, string> = {
+  todo: 'TODO',
+  in_progress: 'IN_PROGRESS',
+  done: 'DONE',
+};
 
 // Mock данные — заменить на реальный API когда бэкенд будет готов
 const mockTasks: Task[] = [
@@ -55,7 +62,15 @@ export const tasksApi = {
     await delay(200);
     const task = mockTasks.find(t => t.id === taskId);
     if (!task) throw new Error('Задача не найдена');
+    const previousStatus = task.status;
     task.status = newStatus;
+
+    api.patch(`/tasks/${taskId}/status`, {
+      status: STATUS_MAP[newStatus],
+      previousStatus: STATUS_MAP[previousStatus],
+      title: task.title,
+    }).catch(() => {});
+
     return { ...task };
   },
 
