@@ -9,9 +9,12 @@ import ProfilePage from './pages/ProfilePage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
+import { useTaskSocket } from './hooks/useTaskSocket';
 
 function App() {
   const { token } = useSelector((state: RootState) => state.auth);
+
+  useTaskSocket(!!token);
 
   return (
     <BrowserRouter>
