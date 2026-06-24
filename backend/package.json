@@ -1,0 +1,28 @@
+{
+  "name": "taskflow-backend",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "seed": "prisma db seed"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "@prisma/client": "^5.0.0",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.0.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.0.0",
+    "prisma": "^5.0.0"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  }
+}
