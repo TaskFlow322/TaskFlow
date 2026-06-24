@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { moveTask, updateTask, deleteTask, addTask } from '../store/tasksSlice';
@@ -13,7 +13,6 @@ const KanbanBoard = () => {
   const dispatch = useDispatch();
   const { tasks } = useSelector((state: RootState) => state.tasks);
   const { showToast } = useToast();
-  const [columns, setColumns] = useState<Column[]>(mockColumns);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateMode, setIsCreateMode] = useState(false);
@@ -25,12 +24,17 @@ const KanbanBoard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
 
-  // Фильтруем задачи
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // Фильтруем задачи с помощью useMemo (чтобы не пересоздавать на каждый рендер)
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task => {
+      const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [tasks, searchQuery, statusFilter]);
+
+  // Обновляем колонки только когда меняется filteredTasks
+  const [columns, setColumns] = useState<Column[]>([]);
 
   useEffect(() => {
     const updatedColumns = mockColumns.map(col => ({
@@ -38,7 +42,7 @@ const KanbanBoard = () => {
       tasks: filteredTasks.filter(t => t.status === col.id),
     }));
     setColumns(updatedColumns);
-  }, [filteredTasks]);
+  }, [filteredTasks]); // ✅ Теперь зависимость правильная
 
   const handleTaskMove = (taskId: number, newStatus: TaskStatus) => {
     dispatch(moveTask({ taskId, newStatus }));

@@ -13,6 +13,7 @@ export interface TaskMovedPayload {
   id: string;
   previousStatus: string;
   status: string;
+  title?: string;
 }
 
 export const emitTaskCreated = (task: TaskEventPayload): void => {
