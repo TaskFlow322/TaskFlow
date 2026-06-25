@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { Comment, CreateCommentRequest } from '../types/comment.types';
+import { EntityId } from '../types/task.types';
 import { api } from '../api/axiosInstance';
 
 interface CommentsState {
@@ -14,11 +15,21 @@ const initialState: CommentsState = {
   error: null,
 };
 
+const normalizeComment = (comment: any): Comment => ({
+  id: comment.id,
+  taskId: comment.taskId,
+  userId: comment.userId,
+  userName: comment.user?.username ?? comment.userName ?? 'Пользователь',
+  text: comment.content ?? comment.text ?? '',
+  createdAt: comment.createdAt,
+});
+
 export const fetchComments = createAsyncThunk(
   'comments/fetchByTask',
-  async (taskId: number) => {
+  async (taskId: EntityId) => {
     const response = await api.get(`/tasks/${taskId}/comments`);
-    return response.data;
+    const comments = response.data.data?.comments ?? response.data.comments ?? response.data;
+    return Array.isArray(comments) ? comments.map(normalizeComment) : [];
   }
 );
 
@@ -26,13 +37,14 @@ export const addComment = createAsyncThunk(
   'comments/add',
   async ({ taskId, text }: CreateCommentRequest) => {
     const response = await api.post(`/tasks/${taskId}/comments`, { text });
-    return response.data;
+    const comment = response.data.data?.comment ?? response.data.comment ?? response.data;
+    return normalizeComment(comment);
   }
 );
 
 export const deleteComment = createAsyncThunk(
   'comments/delete',
-  async ({ taskId, commentId }: { taskId: number; commentId: number }) => {
+  async ({ taskId, commentId }: { taskId: EntityId; commentId: EntityId }) => {
     await api.delete(`/tasks/${taskId}/comments/${commentId}`);
     return commentId;
   }

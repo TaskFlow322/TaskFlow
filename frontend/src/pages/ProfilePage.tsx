@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store';
+import { AppDispatch, RootState } from '../store';
 import { updateProfile } from '../store/authSlice';
 import Alert from '../components/ui/Alert';
 
 const ProfilePage = () => {
   const { user } = useSelector((state: RootState) => state.auth);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const [username, setUsername] = useState(user?.username || '');
   const [email, setEmail] = useState(user?.email || '');
   const [avatar, setAvatar] = useState<string>(user?.avatar || '');

@@ -16,6 +16,17 @@ export interface TaskMovedPayload {
   title?: string;
 }
 
+export interface TaskDeletedPayload {
+  id: string;
+}
+
+export interface CommentEventPayload {
+  id: string;
+  taskId: string;
+  userId: string;
+  content?: string;
+}
+
 export const emitTaskCreated = (task: TaskEventPayload): void => {
   getIO().emit('task:created', task);
 };
@@ -26,4 +37,16 @@ export const emitTaskUpdated = (task: TaskEventPayload): void => {
 
 export const emitTaskMoved = (payload: TaskMovedPayload): void => {
   getIO().emit('task:moved', payload);
+};
+
+export const emitTaskDeleted = (payload: TaskDeletedPayload): void => {
+  getIO().emit('task:deleted', payload);
+};
+
+export const emitCommentCreated = (payload: CommentEventPayload): void => {
+  getIO().emit('comment:created', payload);
+};
+
+export const emitCommentDeleted = (payload: CommentEventPayload): void => {
+  getIO().emit('comment:deleted', payload);
 };

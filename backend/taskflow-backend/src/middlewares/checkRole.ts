@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { Role } from '@prisma/client';
 
-export const checkRole = (...roles: Role[]) => {
+export const checkRole = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
 
     if (!req.user) {
@@ -12,7 +11,9 @@ export const checkRole = (...roles: Role[]) => {
       return;
     }
 
-    if (!roles.includes(req.user.role as Role)) {
+    const userRoles = req.user.roles ?? [req.user.role];
+
+    if (!roles.some((role) => userRoles.includes(role))) {
       res.status(403).json({
         success: false,
         error: { message: `Доступ запрещён. Нужна роль: ${roles.join(' или ')}` }

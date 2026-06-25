@@ -1,4 +1,4 @@
-export const mockLogin = (email: string, password: string) => {
+export const mockLogin = (email: string, _password: string) => {
   return {
     user: {
       id: 1,
@@ -9,7 +9,7 @@ export const mockLogin = (email: string, password: string) => {
   };
 };
 
-export const mockRegister = (email: string, password: string, name: string) => {
+export const mockRegister = (email: string, _password: string, name: string) => {
   return {
     user: {
       id: 1,

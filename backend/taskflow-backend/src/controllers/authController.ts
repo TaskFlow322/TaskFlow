@@ -1,176 +1,79 @@
 import { Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
-import jwt, { SignOptions } from 'jsonwebtoken';
-import { prisma } from '../config/prisma';
-import { env } from '../config/env';
+import { authService } from '../services/auth.service';
 import { AuthRequest } from '../middlewares/authMiddleware';
+import { ApiError } from '../utils/ApiError';
 
-// РЕГИСТРАЦИЯ
+const handleControllerError = (res: Response, error: unknown, fallbackMessage: string): void => {
+  if (error instanceof ApiError) {
+    res.status(error.statusCode).json({
+      success: false,
+      error: { message: error.message },
+    });
+    return;
+  }
+
+  res.status(500).json({
+    success: false,
+    error: { message: fallbackMessage },
+  });
+};
+
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, username, password, fullName } = req.body;
-
-    if (!email || !username || !password) {
-      res.status(400).json({
-        success: false,
-        error: { message: 'Заполни все поля: email, username, password' }
-      });
-      return;
-    }
-
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ email }, { username }]
-      }
-    });
-
-    if (existingUser) {
-      res.status(400).json({
-        success: false,
-        error: { message: 'Пользователь с таким email или username уже существует' }
-      });
-      return;
-    }
-
-    const hashedPassword = await bcrypt.hash(password, env.bcryptRounds);
-
-    const user = await prisma.user.create({
-      data: {
-        email,
-        username,
-        password: hashedPassword,
-        fullName: fullName || null,
-      },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        fullName: true,
-        role: true,
-        createdAt: true,
-      }
-    });
-
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      env.jwtSecret,
-      { expiresIn: env.jwtExpiresIn as SignOptions['expiresIn'] }
-    );
+    const result = await authService.register(req.body);
 
     res.status(201).json({
       success: true,
-      data: { token, user }
+      data: result,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: { message: 'Ошибка сервера при регистрации' }
-    });
+    handleControllerError(res, error, 'Ошибка сервера при регистрации');
   }
 };
 
-// ЛОГИН
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      res.status(400).json({
-        success: false,
-        error: { message: 'Заполни email и password' }
-      });
-      return;
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email }
-    });
-
-    if (!user || !user.isActive) {
-      res.status(401).json({
-        success: false,
-        error: { message: 'Неверный email или пароль' }
-      });
-      return;
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      res.status(401).json({
-        success: false,
-        error: { message: 'Неверный email или пароль' }
-      });
-      return;
-    }
-
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      env.jwtSecret,
-      { expiresIn: env.jwtExpiresIn as SignOptions['expiresIn'] }
-    );
+    const result = await authService.login(req.body);
 
     res.json({
       success: true,
-      data: {
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          fullName: user.fullName,
-          role: user.role,
-        }
-      }
+      data: result,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: { message: 'Ошибка сервера при входе' }
-    });
+    handleControllerError(res, error, 'Ошибка сервера при входе');
   }
 };
 
-// ПОЛУЧИТЬ СЕБЯ
 export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.user?.id) {
-      res.status(401).json({
-        success: false,
-        error: { message: 'Пользователь не авторизован' }
-      });
-      return;
+      throw ApiError.unauthorized('Пользователь не авторизован');
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        fullName: true,
-        avatar: true,
-        role: true,
-        createdAt: true,
-      }
-    });
-
-    if (!user) {
-      res.status(404).json({
-        success: false,
-        error: { message: 'Пользователь не найден' }
-      });
-      return;
-    }
+    const user = await authService.getCurrentUser(req.user.id);
 
     res.json({
       success: true,
-      data: { user }
+      data: { user },
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: { message: 'Ошибка сервера' }
+    handleControllerError(res, error, 'Ошибка сервера');
+  }
+};
+
+export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user?.id) {
+      throw ApiError.unauthorized('Пользователь не авторизован');
+    }
+
+    const user = await authService.updateProfile(req.user.id, req.body);
+
+    res.json({
+      success: true,
+      data: { user },
     });
+  } catch (error) {
+    handleControllerError(res, error, 'Ошибка сервера при обновлении профиля');
   }
 };

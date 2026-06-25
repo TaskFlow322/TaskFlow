@@ -5,7 +5,7 @@ import { moveTask, updateTask, deleteTask, addTask } from '../store/tasksSlice';
 import KanbanColumn from '../components/KanbanColumn';
 import Modal from '../components/ui/Modal';
 import CommentList from '../components/CommentList';
-import { Task, TaskStatus, Column } from '../types/task.types';
+import { EntityId, Task, TaskStatus, Column } from '../types/task.types';
 import { mockColumns } from '../mocks/tasks.mock';
 import { useToast } from '../context/ToastContext';
 
@@ -44,7 +44,7 @@ const KanbanBoard = () => {
     setColumns(updatedColumns);
   }, [filteredTasks]); // ✅ Теперь зависимость правильная
 
-  const handleTaskMove = (taskId: number, newStatus: TaskStatus) => {
+  const handleTaskMove = (taskId: EntityId, newStatus: TaskStatus) => {
     dispatch(moveTask({ taskId, newStatus }));
     const task = tasks.find(t => t.id === taskId);
     showToast(`Задача "${task?.title}" перемещена`, 'info');
@@ -181,7 +181,7 @@ const KanbanBoard = () => {
             id={col.id}
             title={col.title}
             tasks={col.tasks}
-            onTaskMove={handleTaskMove}
+            onDrop={handleTaskMove}
             onTaskClick={handleTaskClick}
           />
         ))}

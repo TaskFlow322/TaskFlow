@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../store/authSlice';
 import { useTheme } from '../context/ThemeContext';
 import Alert from '../components/ui/Alert';
-import { RootState } from '../store';
+import { AppDispatch, RootState } from '../store';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { loading, error } = useSelector((state: RootState) => state.auth);

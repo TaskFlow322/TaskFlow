@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { api } from '../api/axiosInstance';
 import { User } from '../types/auth.types';
 
@@ -50,7 +50,7 @@ export const updateProfile = createAsyncThunk(
   'auth/updateProfile',
   async ({ username, email, avatar }: { username?: string; email?: string; avatar?: string }) => {
     const response = await api.patch('/auth/profile', { username, email, avatar });
-    return response.data;
+    return response.data.data;
   }
 );
 

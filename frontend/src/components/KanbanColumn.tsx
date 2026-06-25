@@ -1,4 +1,4 @@
-import { Task, TaskStatus } from '../types/task.types';
+import { EntityId, Task, TaskStatus } from '../types/task.types';
 import TaskCard from './TaskCard';
 
 interface KanbanColumnProps {
@@ -6,7 +6,7 @@ interface KanbanColumnProps {
   title: string;
   tasks: Task[];
   onTaskClick: (task: Task) => void;
-  onDrop: (taskId: number, newStatus: TaskStatus) => void;
+  onDrop: (taskId: EntityId, newStatus: TaskStatus) => void;
 }
 
 const KanbanColumn = ({ id, title, tasks, onTaskClick, onDrop }: KanbanColumnProps) => {
@@ -16,7 +16,7 @@ const KanbanColumn = ({ id, title, tasks, onTaskClick, onDrop }: KanbanColumnPro
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const taskId = Number(e.dataTransfer.getData('taskId'));
+    const taskId = e.dataTransfer.getData('taskId');
     if (taskId) {
       onDrop(taskId, id);
     }

@@ -1,5 +1,7 @@
+import { EntityId } from './task.types';
+
 export interface User {
-  id: number;
+  id: EntityId;
   email: string;
   username: string;
   avatar?: string;

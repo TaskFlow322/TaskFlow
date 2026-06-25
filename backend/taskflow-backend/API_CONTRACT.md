@@ -98,19 +98,20 @@
 
 **Headers:** `Authorization: Bearer <token>`
 
+Alias: `GET /api/me`
+
 ---
 
 ## 📋 Projects (День 4)
 
 ### `GET /api/projects` 🔒
-Список проектов пользователя. Query: `?page=1&limit=20`
+Список проектов. Query: `?memberId=uuid`
 
 ### `POST /api/projects` 🔒
 ```json
 {
   "name": "My Project",
-  "description": "Project description",
-  "color": "#6366f1"
+  "description": "Project description"
 }
 ```
 
@@ -122,28 +123,30 @@
 
 ## ✅ Tasks (День 5)
 
-### `GET /api/projects/:projectId/tasks` 🔒
-Query: `?status=TODO&assigneeId=uuid&search=fix&page=1&limit=20`
+### `GET /api/tasks` 🔒
+Query: `?projectId=uuid&status=TODO&assigneeId=uuid`
 
-### `POST /api/projects/:projectId/tasks` 🔒
+### `POST /api/tasks` 🔒
 ```json
 {
   "title": "Fix bug #123",
   "description": "...",
   "status": "TODO",
   "priority": "HIGH",
-  "assigneeId": "uuid",
-  "dueDate": "2024-02-01T00:00:00.000Z"
+  "projectId": "uuid",
+  "assigneeId": "uuid"
 }
 ```
 
-**Статусы задач:** `TODO | IN_PROGRESS | REVIEW | DONE`  
-**Приоритеты:** `LOW | MEDIUM | HIGH | URGENT`
+**Статусы задач:** `TODO | IN_PROGRESS | DONE`
+**Приоритеты:** `LOW | MEDIUM | HIGH`
 
 ### `GET /api/tasks/:id` 🔒
 ### `PUT /api/tasks/:id` 🔒
+### `PATCH /api/tasks/:id` 🔒
 ### `DELETE /api/tasks/:id` 🔒
-### `PATCH /api/tasks/:id/status` 🔒 — изменить статус (для Kanban drag&drop)
+### `PATCH /api/tasks/:id/move` 🔒 — изменить статус задачи
+### `PATCH /api/tasks/:id/status` 🔒 — alias для Kanban drag&drop
 
 ---
 
@@ -154,21 +157,48 @@ Query: `?status=TODO&assigneeId=uuid&search=fix&page=1&limit=20`
 ```json
 { "content": "Comment text" }
 ```
-### `DELETE /api/comments/:id` 🔒
+Также принимается `{ "text": "Comment text" }`.
+
+### `DELETE /api/tasks/:taskId/comments/:commentId` 🔒
+### `DELETE /api/tasks/:taskId/comments?commentId=uuid` 🔒
+
+---
+
+## 👤 Users
+
+### `PUT /api/users/profile` 🔒
+### `PATCH /api/users/profile` 🔒
+Alias для текущего фронтенда: `PATCH /api/auth/profile`
+
+```json
+{
+  "username": "new_username",
+  "email": "new@example.com",
+  "fullName": "New Name",
+  "avatar": "https://example.com/avatar.png"
+}
+```
+
+---
+
+## 📊 Analytics
+
+### `GET /api/analytics/overview` 🔒
 
 ---
 
 ## 🔔 WebSocket Events (День 11)
 
-Подключение: `ws://localhost:3000` с токеном в handshake
+Подключение: `ws://localhost:3001`
 
 | Event | Direction | Payload |
 |---|---|---|
 | `task:created` | server → client | `{ task, projectId }` |
 | `task:updated` | server → client | `{ task }` |
-| `task:moved` | server → client | `{ taskId, fromStatus, toStatus }` |
-| `comment:added` | server → client | `{ comment, taskId }` |
-| `notification:new` | server → client | `{ notification }` |
+| `task:moved` | server → client | `{ id, previousStatus, status, title }` |
+| `task:deleted` | server → client | `{ id }` |
+| `comment:created` | server → client | `{ id, taskId, userId, content }` |
+| `comment:deleted` | server → client | `{ id, taskId, userId }` |
 
 ---
 

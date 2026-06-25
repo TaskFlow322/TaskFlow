@@ -1,13 +1,15 @@
+import { EntityId } from './task.types';
+
 export interface Comment {
-  id: number;
-  taskId: number;
-  userId: number;
+  id: EntityId;
+  taskId: EntityId;
+  userId: EntityId;
   userName: string;
   text: string;
   createdAt: string;
 }
 
 export interface CreateCommentRequest {
-  taskId: number;
+  taskId: EntityId;
   text: string;
 }

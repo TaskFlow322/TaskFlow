@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { updateTask, deleteTask } from '../store/tasksSlice';
-import { Task, TaskStatus } from '../types/task.types';
+import { EntityId, Task, TaskStatus } from '../types/task.types';
 import Modal from './ui/Modal';
 import CommentList from './CommentList';
 import { useToast } from '../context/ToastContext';
@@ -40,17 +40,24 @@ const TaskModal = ({ isOpen, onClose, task }: TaskModalProps) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [isDeleteConfirming, setIsDeleteConfirming] = useState(false);
+  const [activeTaskId, setActiveTaskId] = useState<EntityId | null>(null);
 
-  // Синхронизация при открытии
-  const prevTaskId = useState<number | null>(null)[0];
-  if (task && task.id !== prevTaskId) {
-    setEditTitle(task.title);
-    setEditDescription(task.description);
-    setEditStatus(task.status);
-    setIsEditingTitle(false);
-    setIsEditingDescription(false);
-    setIsDeleteConfirming(false);
-  }
+  useEffect(() => {
+    if (!task) {
+      setActiveTaskId(null);
+      return;
+    }
+
+    if (task.id !== activeTaskId) {
+      setActiveTaskId(task.id);
+      setEditTitle(task.title);
+      setEditDescription(task.description);
+      setEditStatus(task.status);
+      setIsEditingTitle(false);
+      setIsEditingDescription(false);
+      setIsDeleteConfirming(false);
+    }
+  }, [activeTaskId, task]);
 
   if (!task) return null;
 

@@ -1,12 +1,13 @@
+export type EntityId = string | number;
 export type TaskStatus = 'todo' | 'in_progress' | 'done';
 
 export interface Task {
-  id: number;
+  id: EntityId;
   title: string;
   description: string;
   status: TaskStatus;
-  projectId: number;
-  assigneeId: number;
+  projectId?: EntityId | null;
+  assigneeId?: EntityId | null;
   createdAt: string;
 }
 

@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store';
-import { addComment, deleteComment } from '../store/commentsSlice';
-import { Comment } from '../types/comment.types';
+import { AppDispatch, RootState } from '../store';
+import { addComment, deleteComment, fetchComments } from '../store/commentsSlice';
+import { EntityId } from '../types/task.types';
 import { Send, Trash2 } from 'lucide-react';
 
 interface CommentListProps {
-  taskId: number;
+  taskId: EntityId;
 }
 
 const getInitials = (name: string): string => {
@@ -18,7 +18,7 @@ const getInitials = (name: string): string => {
     .slice(0, 2);
 };
 
-const getAvatarColor = (userId: number): string => {
+const getAvatarColor = (userId: EntityId): string => {
   const colors = [
     'bg-blue-500',
     'bg-purple-500',
@@ -29,7 +29,11 @@ const getAvatarColor = (userId: number): string => {
     'bg-indigo-500',
     'bg-pink-500',
   ];
-  return colors[userId % colors.length];
+  const numericId =
+    typeof userId === 'number'
+      ? userId
+      : userId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return colors[numericId % colors.length];
 };
 
 const formatRelativeTime = (dateStr: string): string => {
@@ -56,7 +60,7 @@ const formatRelativeTime = (dateStr: string): string => {
 const CommentList = ({ taskId }: CommentListProps) => {
   const { comments } = useSelector((state: RootState) => state.comments);
   const { user } = useSelector((state: RootState) => state.auth);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -67,33 +71,31 @@ const CommentList = ({ taskId }: CommentListProps) => {
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   useEffect(() => {
+    dispatch(fetchComments(taskId));
+  }, [dispatch, taskId]);
+
+  useEffect(() => {
     // Прокрутка вниз при новых комментариях
     commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [taskComments.length]);
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     const trimmed = newComment.trim();
     if (!trimmed || isSubmitting) return;
 
     setIsSubmitting(true);
 
-    const comment: Comment = {
-      id: Date.now(),
-      taskId,
-      userId: user?.id || 1,
-      userName: user?.username || 'Пользователь',
-      text: trimmed,
-      createdAt: new Date().toISOString(),
-    };
-
-    dispatch(addComment(comment));
-    setNewComment('');
-    setIsSubmitting(false);
-    setTimeout(() => inputRef.current?.focus(), 50);
+    try {
+      await dispatch(addComment({ taskId, text: trimmed })).unwrap();
+      setNewComment('');
+      setTimeout(() => inputRef.current?.focus(), 50);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleDeleteComment = (id: number) => {
-    dispatch(deleteComment(id));
+  const handleDeleteComment = (id: EntityId) => {
+    dispatch(deleteComment({ taskId, commentId: id }));
   };
 
   return (
